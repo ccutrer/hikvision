@@ -56,8 +56,8 @@ module Hikvision
         end
       end
 
-      def add_bool_getter(method, xml_method, path)
-        add_getter(method, xml_method, path) { |v| v == "true" }
+      def add_bool_getter(method, xml_method, path, true_value = "true")
+        add_getter(method, xml_method, path) { |v| v == true_value }
       end
 
       def add_setter(method, xml_method, path, *types, &block)

@@ -2,10 +2,11 @@
 
 module Hikvision
   class System < Hikvision::Base
-    attr_reader :network, :time
+    attr_reader :hardware, :network, :time
 
     def initialize(isapi)
       super()
+      @hardware = Hardware.new(isapi)
       @isapi = isapi
       @network = Network.new(isapi)
       @time = Time.new(isapi)
