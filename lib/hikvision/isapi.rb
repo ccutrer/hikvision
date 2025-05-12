@@ -27,13 +27,14 @@ module Hikvision
     include HTTParty
 
     attr_accessor :cache
-    attr_reader :streaming, :system
+    attr_reader :image, :streaming, :system
 
     def initialize(ip, username, password, args = { auth_type: "digest_auth", https: false })
       @cache = {}
       @auth_type = args[:auth_type]
       @base_uri = "http#{args[:https] ? "s" : ""}://#{ip}"
       @auth = { username:, password: }
+      @image = Hikvision::Image.new(self)
       @streaming = Hikvision::Streaming.new(self)
       @system = Hikvision::System.new(self)
     end

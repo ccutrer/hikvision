@@ -2,6 +2,9 @@
 
 require_relative "hikvision/version"
 require_relative "hikvision/base"
+require_relative "hikvision/image"
+require_relative "hikvision/image/channel"
+require_relative "hikvision/image/channel/shutter"
 require_relative "hikvision/isapi"
 require_relative "hikvision/streaming"
 require_relative "hikvision/streaming/channel"

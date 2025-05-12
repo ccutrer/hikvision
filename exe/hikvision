@@ -236,6 +236,26 @@ class App
       ch.update if edited
     end
   end
+
+  command :image do |c|
+    c.switch :"shutter-speed", negatable: false, desc: "prints shutter speed"
+    c.flag :"set-shutter-speed", desc: "sets shutter speed"
+
+    c.action do |_gopts, opts, args|
+      id = args[0] || "1"
+      exit_now! "channel id must be an integer", 1 if id.to_i.to_s != id
+      id = id.to_i
+      ch = @dev.image.channel(id)
+      exit_now! "channel id doesn't exists", 1 if ch.nil?
+
+      print_kv :"shutter-speed", ch.shutter.speed, opts
+
+      if opts[:"set-shutter-speed"]
+        set_if_in_opts(ch.shutter, :speed=, opts[:"set-shutter-speed"], ch.shutter.speed_opts)
+        ch.shutter.update
+      end
+    end
+  end
 end
 
 exit App.run(ARGV)
