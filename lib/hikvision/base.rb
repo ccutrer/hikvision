@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Hikvision
   class Base
     class << self
@@ -13,7 +15,7 @@ module Hikvision
           instance_variable_set(iv, @isapi.get_xml(url, options))
         end
 
-        reload_method = method == :base ? :reload : :"reload_#{method}"
+        reload_method = (method == :base) ? :reload : :"reload_#{method}"
         define_method reload_method do |options = {}|
           send(load_method, options.merge(cache: false))
         end
@@ -22,7 +24,7 @@ module Hikvision
       def add_getter(method, xml_method, path, opts = { cache: true }, &block)
         define_method method do
           v = send(:"load_#{xml_method}", opts).at_xpath(path).inner_html
-          v = block.call(v) if block
+          v = block.call(v) if block # rubocop:disable Performance/RedundantBlockCall
           v
         end
       end
@@ -31,7 +33,7 @@ module Hikvision
         define_method method do
           send(:"load_#{xml_method}", opts).xpath(path).map do |v|
             v = v.inner_html
-            v = block.call(v) if block
+            v = block.call(v) if block # rubocop:disable Performance/RedundantBlockCall
             v
           end
         end
@@ -39,9 +41,9 @@ module Hikvision
 
       def add_opt_getter(method, xml_method, path, transform = nil, &block)
         define_method method do
-          send(:"load_#{xml_method}", cache: true).at_xpath(path)[:opt].split(',').map do |v|
+          send(:"load_#{xml_method}", cache: true).at_xpath(path)[:opt].split(",").map do |v|
             v = v.send(transform) if transform
-            v = block.call(v) if block
+            v = block.call(v) if block # rubocop:disable Performance/RedundantBlockCall
             v
           end
         end
@@ -55,13 +57,13 @@ module Hikvision
       end
 
       def add_bool_getter(method, xml_method, path)
-        add_getter(method, xml_method, path) { |v| v == 'true' }
+        add_getter(method, xml_method, path) { |v| v == "true" }
       end
 
       def add_setter(method, xml_method, path, *types, &block)
-        update_method = xml_method == :base ? :update : :"update_#{xml_method}"
+        update_method = (xml_method == :base) ? :update : :"update_#{xml_method}"
 
-        if not respond_to? update_method
+        unless respond_to? update_method
           define_method update_method do |options = {}|
             send(:"before_#{update_method}") if respond_to? :"before_#{update_method}"
 
@@ -71,9 +73,11 @@ module Hikvision
         end
 
         define_method method do |value|
-          raise TypeError, "#{method}#{value} (#{value.class}) must be of type #{types}" unless types.any? { |k| value.is_a?(k) }
+          raise TypeError, "#{method}#{value} (#{value.class}) must be of type #{types}" unless types.any? do |k|
+            value.is_a?(k)
+          end
 
-          value = block.call(value) if block
+          value = block.call(value) if block # rubocop:disable Performance/RedundantBlockCall
           send(:"load_#{xml_method}", cache: true).at_xpath(path).inner_html = value.to_s
         end
       end

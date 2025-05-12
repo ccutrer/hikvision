@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Hikvision
   class Streaming
     def initialize(isapi)
@@ -16,8 +18,8 @@ module Hikvision
       return @channels if options.fetch(:cache, true) && instance_variable_defined?(:@channels)
 
       @channels = {}
-      xml = @isapi.get_xml('/ISAPI/Streaming/channels', options)
-      xml.xpath('StreamingChannelList/StreamingChannel').each do |c|
+      xml = @isapi.get_xml("/ISAPI/Streaming/channels", options)
+      xml.xpath("StreamingChannelList/StreamingChannel").each do |c|
         channel = Channel.new(@isapi, Nokogiri::XML(c.to_s))
         @channels[channel.id] = channel
       end

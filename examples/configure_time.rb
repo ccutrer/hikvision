@@ -1,9 +1,11 @@
-require 'hikvision'
-require 'time'
+# frozen_string_literal: true
+
+require "hikvision"
+require "time"
 
 # Syncs camera time with local time
 
-cam = Hikvision::ISAPI.new('192.168.0.32', 'user', 'password')
+cam = Hikvision::ISAPI.new("192.168.0.32", "user", "password")
 
 if cam.system.time.mode == :manual
   now = Time.now

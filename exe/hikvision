@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
-require 'hikvision'
-require 'gli'
+require "hikvision"
+require "gli"
 
 class Numeric
   def duration
@@ -18,7 +19,7 @@ class App
   extend GLI::App
 
   def self.print_kv(key, value, opts)
-    puts "#{opts[:'with-keys'] ? key.to_s + ': ' : ''}#{value}" if opts[key]
+    puts "#{opts[:"with-keys"] ? "#{key}: " : ""}#{value}" if opts[key]
   end
 
   def self.set_if_in_opts(obj, setter, val, opts)
@@ -27,7 +28,7 @@ class App
     if opts.include? val
       obj.send(setter, val)
     else
-      exit_now! "\"#{val}\" is invalid, choose from: #{opts.join(', ')}", 1
+      exit_now! "\"#{val}\" is invalid, choose from: #{opts.join(", ")}", 1
     end
   end
 
@@ -39,7 +40,7 @@ class App
 
   pre do |gopts, _opts, _args|
     @dev = Hikvision::ISAPI.new(gopts[:h], gopts[:u], gopts[:p])
-    exit_now! 'could not authenticate' if @dev.put('/ISAPI/Security/sessionHeartbeat').response.code == '401'
+    exit_now! "could not authenticate" if @dev.put("/ISAPI/Security/sessionHeartbeat").response.code == "401"
     1
   end
 
@@ -50,17 +51,17 @@ class App
   end
 
   command :date do |c|
-    c.flag :strftime, default_value: '%c'
+    c.flag :strftime, default_value: "%c"
     c.action do |_gopts, opts, _args|
       puts @dev.system.time.now.strftime opts[:strftime].to_s
     end
   end
 
-  desc 'Configurate time settings'
+  desc "Configurate time settings"
   command :time do |c|
-    c.flag :"set-ntp", arg_name: 'host'
-    c.flag :"set-ntp-port", type: Integer, arg_name: 'port'
-    c.flag :"set-mode", must_match: %w[manual ntp], arg_name: 'ntp,manual'
+    c.flag :"set-ntp", arg_name: "host"
+    c.flag :"set-ntp-port", type: Integer, arg_name: "port"
+    c.flag :"set-mode", must_match: %w[manual ntp], arg_name: "ntp,manual"
     c.switch :ntp, negatable: false
     c.switch :"ntp-port", negatable: false
     c.switch :mode, negatable: false
@@ -74,7 +75,7 @@ class App
         end
       end
 
-      time =@dev.system.time
+      time = @dev.system.time
       ntp = time.ntp
 
       print_kv :ntp, ntp.host, opts
@@ -95,12 +96,13 @@ class App
 
       print_kv :mode, time.mode.to_s.downcase, opts
 
-      time.mode = opts[:"set-mode"] == 'ntp' ? :NTP : :manual if opts[:"set-mode"]
+      time.mode = (opts[:"set-mode"] == "ntp") ? :NTP : :manual if opts[:"set-mode"]
 
       time.update if edited
 
-      if ntp_edited and time.mode == :manual
-        puts 'ntp settings altered but the device time mode is set to manual. please run with "--set-mode ntp" to set the time mode to ntp'
+      if ntp_edited && (time.mode == :manual)
+        puts "ntp settings altered but the device time mode is set to manual. " \
+             'please run with "--set-mode ntp" to set the time mode to ntp'
       end
     end
   end
@@ -117,14 +119,14 @@ class App
     end
   end
 
-  desc 'Shows the device id'
+  desc "Shows the device id"
   command :id do |c|
     c.action do
       puts @dev.system.id
     end
   end
 
-  desc 'Shows the device description'
+  desc "Shows the device description"
   command :desc do |c|
     c.action do
       puts @dev.system.description
@@ -143,14 +145,14 @@ class App
     end
   end
 
-  desc 'List available channels'
+  desc "List available channels"
   command :channels do |c|
     c.action do
-      puts @dev.streaming.channels.collect { |ch| ch.id }
+      puts(@dev.streaming.channels.collect(&:id))
     end
   end
 
-  desc 'Dumps device diagnosed data'
+  desc "Dumps device diagnosed data"
   command :dumpdata do |c|
     c.action do
       puts @dev.system.diagnosed_data
@@ -158,63 +160,64 @@ class App
   end
 
   command :channel do |c|
-    c.flag :'save-picture', arg_name: 'file', desc: 'saves picture to file'
-    c.flag :'set-video-codec', desc: 'sets channel video codec'
-    c.switch :'video-codec', negatable: false, desc: 'prints channel video codec'
-    c.flag :'set-audio-codec', desc: 'sets channel audio codec'
-    c.switch :'audio-codec', negatable: false, desc: 'prints channel audio codec'
-    c.switch :'disable-audio', negatable: false, desc: 'disables channel audio'
-    c.switch :'enable-audio', negatable: false, desc: 'enabled channel audio'
-    c.switch :'video-resolution', negatable: false, desc: 'prints channel video resolution'
-    c.switch :'video-framerate', negatable: false, desc: 'prints channel video framerate'
-    c.switch :'video-keyframe-interval', negatable: false, desc: 'prints channel keyframe interval'
-    c.switch :'video-cbr', negatable: false, desc: 'prints channel video constant bitrate value'
-    c.switch :'video-bitrate-type', negatable: false, desc: 'prints channel video bitrate type'
-    c.switch :'video-scan-type', negatable: false, desc: 'prints channel video scan type'
-    c.switch :'video-enabled', negatable: false, desc: 'prints if channel video is enabled'
-    c.switch :'audio-enabled', negatable: false, desc: 'prints if channel audio is enabled'
-    c.switch :enabled, negatable: false, desc: 'prints if channel is enabled'
-    c.switch :name, negatable: false, desc: 'prints channel name'
-    c.flag :'set-name', desc: 'sets channel name'
-    c.switch :all, negatable: false, desc: 'prints all possible information'
-    c.switch :'with-keys', negatable: false, desc: 'prints values with keys'
+    c.flag :"save-picture", arg_name: "file", desc: "saves picture to file"
+    c.flag :"set-video-codec", desc: "sets channel video codec"
+    c.switch :"video-codec", negatable: false, desc: "prints channel video codec"
+    c.flag :"set-audio-codec", desc: "sets channel audio codec"
+    c.switch :"audio-codec", negatable: false, desc: "prints channel audio codec"
+    c.switch :"disable-audio", negatable: false, desc: "disables channel audio"
+    c.switch :"enable-audio", negatable: false, desc: "enabled channel audio"
+    c.switch :"video-resolution", negatable: false, desc: "prints channel video resolution"
+    c.switch :"video-framerate", negatable: false, desc: "prints channel video framerate"
+    c.switch :"video-keyframe-interval", negatable: false, desc: "prints channel keyframe interval"
+    c.switch :"video-cbr", negatable: false, desc: "prints channel video constant bitrate value"
+    c.switch :"video-bitrate-type", negatable: false, desc: "prints channel video bitrate type"
+    c.switch :"video-scan-type", negatable: false, desc: "prints channel video scan type"
+    c.switch :"video-enabled", negatable: false, desc: "prints if channel video is enabled"
+    c.switch :"audio-enabled", negatable: false, desc: "prints if channel audio is enabled"
+    c.switch :enabled, negatable: false, desc: "prints if channel is enabled"
+    c.switch :name, negatable: false, desc: "prints channel name"
+    c.flag :"set-name", desc: "sets channel name"
+    c.switch :all, negatable: false, desc: "prints all possible information"
+    c.switch :"with-keys", negatable: false, desc: "prints values with keys"
 
     c.action do |_gopts, opts, args|
       exit_now! "missing id\nusage: channel <id> [opts]", 1 if args.length != 1
       id = args[0]
-      exit_now! 'channel id must be an integer', 1 if id.to_i.to_s != id
+      exit_now! "channel id must be an integer", 1 if id.to_i.to_s != id
       id = id.to_i
       ch = @dev.streaming.channel(id)
       exit_now! "channel id doesn't exists", 1 if ch.nil?
 
       set_opts = %i[set-name set-video-codec set-audio-codec disable-audio enable-audio]
+      bool_opts = %w[with-keys save-picture] + set_opts.map(&:to_s)
 
       if opts[:all]
         opts.each do |key|
-          next if (%w[with-keys save-picture] + set_opts.map { |o| o.to_s }).include? key[0].to_s
+          next if bool_opts.include? key[0].to_s
 
           opts[key[0]] = true
         end
       end
 
-      if opts[:'save-picture']
-        file = File.open(opts[:'save-picture'], 'w+b')
+      if opts[:"save-picture"]
+        file = File.open(opts[:"save-picture"], "w+b")
         file.write(ch.picture)
         file.close
       end
 
       print_kv :name, ch.name, opts
       print_kv :enabled, ch.enabled?, opts
-      print_kv :'video-enabled', ch.video_enabled?, opts
-      print_kv :'video-codec', ch.video_codec, opts
-      print_kv :'video-framerate', ch.video_framerate, opts
-      print_kv :'video-resolution', ch.video_resolution.collect { |r| r.to_s }.join('x'), opts
-      print_kv :'video-keyframe-interval', ch.video_keyframe_interval, opts
-      print_kv :'video-bitrate-type', ch.video_bitrate_type, opts
-      print_kv :'video-cbr', ch.video_cbitrate, opts
-      print_kv :'video-scan-type', ch.video_scan_type, opts
-      print_kv :'audio-enabled', ch.audio_enabled?, opts
-      print_kv :'audio-codec', ch.audio_codec, opts
+      print_kv :"video-enabled", ch.video_enabled?, opts
+      print_kv :"video-codec", ch.video_codec, opts
+      print_kv :"video-framerate", ch.video_framerate, opts
+      print_kv :"video-resolution", ch.video_resolution.collect(&:to_s).join("x"), opts
+      print_kv :"video-keyframe-interval", ch.video_keyframe_interval, opts
+      print_kv :"video-bitrate-type", ch.video_bitrate_type, opts
+      print_kv :"video-cbr", ch.video_cbitrate, opts
+      print_kv :"video-scan-type", ch.video_scan_type, opts
+      print_kv :"audio-enabled", ch.audio_enabled?, opts
+      print_kv :"audio-codec", ch.audio_codec, opts
 
       edited = false
       set_opts.each do |k|
@@ -224,11 +227,11 @@ class App
         break
       end
 
-      ch.name = opts[:'set-name'] if opts[:'set-name']
-      set_if_in_opts(ch, :video_codec=, opts[:'set-video-codec'], ch.video_codec_opts)
-      set_if_in_opts(ch, :audio_codec=, opts[:'set-audio-codec'], ch.audio_codec_opts)
-      set_if_in_opts(ch, :audio_enabled=, false, [false]) if opts[:'disable-audio']
-      set_if_in_opts(ch, :audio_enabled=, true, [true]) if opts[:'enable-audio']
+      ch.name = opts[:"set-name"] if opts[:"set-name"]
+      set_if_in_opts(ch, :video_codec=, opts[:"set-video-codec"], ch.video_codec_opts)
+      set_if_in_opts(ch, :audio_codec=, opts[:"set-audio-codec"], ch.audio_codec_opts)
+      set_if_in_opts(ch, :audio_enabled=, false, [false]) if opts[:"disable-audio"]
+      set_if_in_opts(ch, :audio_enabled=, true, [true]) if opts[:"enable-audio"]
 
       ch.update if edited
     end
