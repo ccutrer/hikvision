@@ -11,7 +11,12 @@ module Hikvision
     end
 
     def channel(id)
-      load_channels[id]
+      if instance_variable_defined?(:@channels)
+        load_channels[id]
+      else
+        xml = @isapi.get_xml("/ISAPI/Image/channels/#{id}")
+        Channel.new(@isapi, xml.at_xpath("ImageChannel"))
+      end
     end
 
     def load_channels(options = {})
