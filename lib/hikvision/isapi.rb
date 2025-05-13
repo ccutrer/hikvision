@@ -50,7 +50,9 @@ module Hikvision
 
     def get_xml(path, options = {})
       data = get(path, options)
-      raise "could not get xml of #{path} code:#{data.response.code}" unless ["200"].include?(data.response.code)
+      unless ["200"].include?(data.response.code)
+        raise "could not get xml of #{@base_uri}#{path} code:#{data.response.code}"
+      end
 
       Nokogiri::XML(data.body).remove_namespaces!
     end

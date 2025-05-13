@@ -17,6 +17,8 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 3.1.0"
 
   s.add_dependency "gli", "~> 2.21"
+  s.add_dependency "homie-mqtt", "~> 1.8"
   s.add_dependency "httparty", "~> 0.21"
+  s.add_dependency "mqtt-homie-homeassistant", "~> 1.1"
   s.add_dependency "nokogiri", "~> 1.14"
 end

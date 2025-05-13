@@ -1,0 +1,118 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "hikvision"
+require "mqtt/homie/home_assistant"
+require "optparse"
+
+class MQTTBridge
+  def initialize(homie, *camera_uris)
+    @homie = homie
+
+    camera_uris.each do |camera_uri|
+      uri = begin
+        URI.parse(camera_uri)
+      rescue URI::InvalidURIError => e
+        warn "Invalid URI #{camera_uri}: #{e}"
+        next
+      end
+      camera = Hikvision::ISAPI.new(uri.host,
+                                    uri.user && URI::DEFAULT_PARSER.unescape(uri.user),
+                                    uri.password && URI::DEFAULT_PARSER.unescape(uri.password))
+      begin
+        @homie.home_assistant_device = {
+          name: camera.system.name,
+          model: camera.system.model,
+          identifiers: [camera.system.id],
+          serial_number: camera.system.serial,
+          sw_version: camera.system.firmware_version
+        }
+      rescue Errno::EHOSTUNREACH, OpenSSL::SSL::SSLError, Socket::ResolutionError => e
+        uri.password = nil
+        warn "Could not connect to #{uri}: #{e}"
+        next
+      end
+      node_id = camera.system.id
+
+      @homie.node(MQTT::Homie.escape_id(camera.system.serial), camera.system.name, camera.system.model) do |node|
+        image = camera.image.channel(1)
+        node.property("ir-light",
+                      "IR Light",
+                      :boolean,
+                      camera.system.hardware.ir_light?,
+                      hass: { switch: { node_id:,
+                                        object_id: "ir-light",
+                                        icon: "mdi:white-balance-iridescent",
+                                        entity_category: :config } },
+                      optimistic: true) do |value|
+          camera.system.hardware.ir_light = value
+          camera.system.hardware.update
+        end
+        node.property("shutter-speed",
+                      "Shutter Speed",
+                      :enum,
+                      image.shutter.speed,
+                      format: image.shutter.speed_opts,
+                      hass: { select: { node_id:,
+                                        object_id: "shutter-speed",
+                                        icon: "mage:lens",
+                                        entity_category: :config } },
+                      optimistic: true) do |value|
+                        image.shutter.speed = value
+                        image.shutter.update
+                      end
+      end
+    end
+    if @homie.empty?
+      warn "No cameras found"
+      exit 1
+    end
+    @homie.publish
+
+    loop do
+      sleep 1_000
+    end
+  end
+end
+
+device_id = "hikvision-cameras"
+metadata = true
+home_assistant_discovery = true
+options = OptionParser.new do |opts|
+  opts.banner = "Usage: hikvision_mqtt_bridge mqtt://uri/ http://user:password@camera_ip/..."
+
+  opts.on("--device-id [DEVICE_ID]", String, "The Homie Device ID") do |v|
+    device_id = v
+  end
+  opts.on("--[no-]homie", "Enable Homie discovery (default on)") do |v|
+    metadata = v
+  end
+  opts.on("--[no-]home-assistant", "Enable Home Assistant discovery (default on)") do |v|
+    home_assistant_discovery = v
+  end
+  opts.on("-v", "--version", "Print version") do
+    puts Hikvision::VERSION
+    exit
+  end
+  opts.on("-h", "--help", "Prints this help") do
+    puts opts
+    exit
+  end
+end
+
+options.parse!
+
+unless ARGV.length >= 2
+  puts options
+  exit 1
+end
+
+mqtt_uri = ARGV.shift
+
+homie = MQTT::Homie::Device.new(device_id,
+                                "Hikvision Cameras",
+                                mqtt: mqtt_uri,
+                                metadata:,
+                                home_assistant_discovery:)
+
+MQTTBridge.new(homie, *ARGV)
