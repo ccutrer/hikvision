@@ -17,8 +17,34 @@ module Hikvision
 
         add_xml(:base, url)
 
-        add_getter(:host, :base, "//hostName")
-        add_setter(:host=, :base, "//hostName", String)
+        def address
+          (address_format == :hostname) ? host : ip_address
+        end
+
+        def address=(value)
+          if Resolv::IPv4::Regex.match?(value)
+            self.host = nil
+            self.ip_address = value
+            self.address_format = :ipaddress
+          else
+            self.ip_address = nil
+            self.host = value
+            self.address_format = :hostname
+          end
+        end
+
+        add_getter(:host, :base, "NTPServer/hostName")
+        add_setter(:host=, :base, "NTPServer/hostName", String, NilClass)
+
+        add_getter(:ip_address, :base, "NTPServer/ipAddress")
+        add_setter(:ip_address=, :base, "NTPServer/ipAddress", String, NilClass)
+
+        add_getter(:address_format, :base, "NTPServer/addressingFormatType", &:to_sym)
+        add_setter(:address_format=, :base, "NTPServer/addressingFormatType", Symbol) do |v|
+          raise ArgumentError, "Invalid address format type" unless %i[hostname ipaddress].include?(v)
+
+          v
+        end
 
         add_getter(:sync_interval, :base, "//synchronizeInterval", &:to_i)
         add_setter(:sync_interval=, :base, "//synchronizeInterval", Integer)

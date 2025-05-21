@@ -23,8 +23,8 @@ module Hikvision
 
       def add_getter(method, xml_method, path, opts = { cache: true }, &block)
         define_method method do
-          v = send(:"load_#{xml_method}", opts).at_xpath(path).inner_html
-          v = block.call(v) if block # rubocop:disable Performance/RedundantBlockCall
+          v = send(:"load_#{xml_method}", opts).at_xpath(path)&.inner_html
+          v = block.call(v) if block && v # rubocop:disable Performance/RedundantBlockCall
           v
         end
       end
@@ -73,12 +73,28 @@ module Hikvision
         end
 
         define_method method do |value|
-          raise TypeError, "#{method}#{value} (#{value.class}) must be of type #{types}" unless types.any? do |k|
+          unless types.any? do |k|
             value.is_a?(k)
           end
+            raise TypeError,
+                  "#{method}#{value} (#{value.class}) must be of type #{types}"
+          end
 
-          value = block.call(value) if block # rubocop:disable Performance/RedundantBlockCall
-          send(:"load_#{xml_method}", cache: true).at_xpath(path).inner_html = value.to_s
+          value = block.call(value) if block && value # rubocop:disable Performance/RedundantBlockCall
+
+          xml = send(:"load_#{xml_method}", cache: true)
+          node = xml.at_xpath(path)
+          if value.nil? && !node.nil?
+            node.remove
+          elsif node.nil? && !value.nil?
+            components = path.split("/")
+            parent_node = xml.at_xpath(components[0...-1].join("/"))
+            child = Nokogiri::XML::Node.new(components.last, xml.document)
+            child.content = value.to_s
+            parent_node << child
+          elsif !node.nil?
+            node.inner_html = value.to_s
+          end
         end
       end
     end

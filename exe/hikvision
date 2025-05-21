@@ -78,10 +78,10 @@ class App
       time = @dev.system.time
       ntp = time.ntp
 
-      print_kv :ntp, ntp.host, opts
+      print_kv :ntp, ntp.address, opts
       print_kv :"ntp-port", ntp.port, opts
 
-      ntp.host = opts[:"set-ntp"] if opts[:"set-ntp"]
+      ntp.address = opts[:"set-ntp"] if opts[:"set-ntp"]
       ntp.port = opts[:"set-ntp-port"] if opts[:"set-ntp-port"]
 
       ntp.update if ntp_edited
