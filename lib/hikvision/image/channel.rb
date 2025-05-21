@@ -15,7 +15,7 @@ module Hikvision
       add_xml(:base, -> { url })
       add_xml(:capabilities, -> { "#{url}/capabilities" })
 
-      add_getter(:id, :base, "//id", &:to_i)
+      add_getter(:id, :base, "id", &:to_i)
 
       def url
         "/ISAPI/Image/channels/#{id}"

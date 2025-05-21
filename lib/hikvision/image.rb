@@ -14,8 +14,7 @@ module Hikvision
       if instance_variable_defined?(:@channels)
         load_channels[id]
       else
-        xml = @isapi.get_xml("/ISAPI/Image/channels/#{id}")
-        Channel.new(@isapi, xml.at_xpath("ImageChannel"))
+        Channel.new(@isapi, @isapi.get_xml("/ISAPI/Image/channels/#{id}"))
       end
     end
 
@@ -24,8 +23,8 @@ module Hikvision
 
       @channels = {}
       xml = @isapi.get_xml("/ISAPI/Image/channels", options)
-      xml.xpath("ImageChannellist/ImageChannel").each do |c|
-        channel = Channel.new(@isapi, Nokogiri::XML(c.to_s))
+      xml.xpath("ImageChannel").each do |c|
+        channel = Channel.new(@isapi, c)
         @channels[channel.id] = channel
       end
       @channels

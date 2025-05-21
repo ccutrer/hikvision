@@ -12,9 +12,9 @@ module Hikvision
 
         add_xml(:base, -> { url })
 
-        add_getter(:speed, :base, "Shutter/ShutterLevel")
-        add_setter(:speed=, :base, "Shutter/ShutterLevel", String)
-        add_opt_getter(:speed_opts, :capabilities, "ImageChannel/Shutter/ShutterLevel")
+        add_getter(:speed, :base, "ShutterLevel")
+        add_setter(:speed=, :base, "ShutterLevel", String)
+        add_opt_getter(:speed_opts, :capabilities, "Shutter/ShutterLevel")
 
         def url
           "#{@channel.url}/shutter"

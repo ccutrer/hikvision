@@ -21,14 +21,14 @@ module Hikvision
 
       add_xml(:base, url)
 
-      add_getter(:mode, :base, "//timeMode", &:to_sym)
-      add_setter(:mode=, :base, "//timeMode", Symbol, String)
+      add_getter(:mode, :base, "timeMode", &:to_sym)
+      add_setter(:mode=, :base, "timeMode", Symbol, String)
 
-      add_getter(:now, :base, "//localTime", cache: false) { |v| ::Time.strptime(v, "%Y-%m-%dT%H:%M:%S%Z") }
-      add_setter(:now=, :base, "//localTime", ::Time) { |v| v.strftime("%Y-%m-%dT%H:%M:%S%Z") }
+      add_getter(:now, :base, "localTime", cache: false) { |v| ::Time.strptime(v, "%Y-%m-%dT%H:%M:%S%Z") }
+      add_setter(:now=, :base, "localTime", ::Time) { |v| v.strftime("%Y-%m-%dT%H:%M:%S%Z") }
 
-      add_getter(:zone, :base, "//timeZone")
-      add_setter(:zone=, :base, "//timeZone", String)
+      add_getter(:zone, :base, "timeZone")
+      add_setter(:zone=, :base, "timeZone", String)
     end
   end
 end

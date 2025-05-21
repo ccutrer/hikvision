@@ -11,15 +11,15 @@ module Hikvision
     end
 
     def status_code
-      @xml.at_xpath("ResponseStatus/statusCode").inner_html.to_i
+      @xml.at_xpath("statusCode").inner_html.to_i
     end
 
     def status_string
-      @xml.at_xpath("ResponseStatus/statusString").inner_html
+      @xml.at_xpath("statusString").inner_html
     end
 
     def sub_status_code
-      @xml.at_xpath("ResponseStatus/subStatusCode").inner_html
+      @xml.at_xpath("subStatusCode").inner_html
     end
   end
 
@@ -54,7 +54,7 @@ module Hikvision
         raise "could not get xml of #{@base_uri}#{path} code:#{data.response.code}"
       end
 
-      Nokogiri::XML(data.body).remove_namespaces!
+      Nokogiri::XML(data.body).remove_namespaces!.root
     end
 
     def put(path, options = {})
@@ -68,7 +68,7 @@ module Hikvision
 
       return true if data.response.code == "200"
 
-      xml = Nokogiri::XML(data.body).remove_namespaces!
+      xml = Nokogiri::XML(data.body).remove_namespaces!.root
       raise ResponseError, xml
     end
 

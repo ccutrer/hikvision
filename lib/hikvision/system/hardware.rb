@@ -16,10 +16,8 @@ module Hikvision
 
       add_xml(:base, url)
 
-      add_bool_getter(:ir_light?, :base, "HardwareService/IrLightSwitch/mode", "open")
-      add_setter(:ir_light=, :base, "HardwareService/IrLightSwitch/mode", TrueClass, FalseClass) do |v|
-        v ? "open" : "close"
-      end
+      add_bool_getter(:ir_light?, :base, "IrLightSwitch/mode", "open")
+      add_setter(:ir_light=, :base, "IrLightSwitch/mode", TrueClass, FalseClass) { |v| v ? "open" : "close" }
     end
   end
 end
