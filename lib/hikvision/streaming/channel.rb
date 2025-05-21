@@ -45,8 +45,11 @@ module Hikvision
       add_opt_range_getter(:video_vbitrate_upper_cap_opts, :capabilities, "Video/vbrUpperCap")
 
       add_getter(:video_keyframe_interval, :base, "Video/keyFrameInterval") { |v| v.to_f / 1000 }
-      add_setter(:video_keyframe_interval=, :base, "Video/keyFrameInterval", Numeric) { |v| (v * 1000).to_i }
       add_opt_range_getter(:video_keyframe_interval_opts, :capabilities, "Video/keyFrameInterval")
+
+      add_getter(:video_gov_interval, :base, "Video/GovLength", &:to_i)
+      add_setter(:video_gov_interval=, :base, "Video/GovLength", Integer)
+      add_opt_range_getter(:video_gov_interval_opts, :capabilities, "Video/GovLength")
 
       add_getter(:video_codec, :base, "Video/videoCodecType")
       add_setter(:video_codec=, :base, "Video/videoCodecType", String)
@@ -59,6 +62,10 @@ module Hikvision
       add_getter(:video_scan_type, :base, "Video/videoScanType")
       add_setter(:video_scan_type=, :base, "Video/videoScanType", String)
       add_opt_getter(:video_scan_type_opts, :capabilities, "Video/videoScanType", :to_s)
+
+      add_getter(:video_h264_profile, :base, "Video/H264Profile")
+      add_setter(:video_h264_profile=, :base, "Video/H264Profile", String)
+      add_opt_getter(:video_h264_profile_opts, :capabilities, "Video/H264Profile", :to_s)
 
       add_getter(:snapshot_image_type, :base, "Video/snapShotImageType")
       add_setter(:snapshot_image_type=, :base, "Video/snapShotImageType", String)
